@@ -1,10 +1,10 @@
 ---
 title: Raspberry Pi でベビーモニターを自作する
 tags:
-  - 'Raspberry Pi'
+  - RaspberryPi
 private: false
-updated_at: ''
-id: null
+updated_at: '2024-07-16T21:56:17+09:00'
+id: 8f31a4faf72cbc2fa0ae
 organization_url_name: null
 slide: false
 ignorePublish: false
@@ -132,11 +132,10 @@ OSはRaspberry Pi OS (64-bit)を利用します。
     - Enable SSHにチェック
     - Use password authenticationにチェック
 
-:::message
 ラズパイには以下ユーザーがデフォルトで用意されている
 username: `pi`
 passwaord: `raspberry`
-:::
+
 ### SDカードへのOSインストールが終わったら
 PCからSDカードを取り外し、SDカードをラズパイに挿します。
 マウス・キーボード・HDMIケーブルもこのタイミングで接続します。
