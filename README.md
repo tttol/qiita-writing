@@ -1,3 +1,3 @@
 # qiita-writing
-Qiita記事執筆用  
-公式repo；https://github.com/increments/qiita-cli
+Qiita記事執筆用のリポジトリ  
+公式：https://github.com/increments/qiita-cli
