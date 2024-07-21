@@ -1,10 +1,10 @@
 ---
 title: おひとりさまAWS Organizationsに入門する
 tags:
-  - 'AWS'
+  - AWS
 private: false
-updated_at: ''
-id: null
+updated_at: '2024-07-22T08:13:25+09:00'
+id: cfd5fa540493cd6be9f9
 organization_url_name: null
 slide: false
 ignorePublish: false
