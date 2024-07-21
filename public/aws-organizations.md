@@ -52,10 +52,9 @@ AWS Organizationsは複数のAWSアカウントを一元管理する機能なの
 }
 ```
 ### IAM Identity Center(以下IdCと呼ぶ)
-- SSOログインを可能にする
 - 利用料金無料
-### IdCのユーザー・グループ
-- IdC
+- IdC内でユーザー・グループを作成して、AWSアカウントに紐づける事ができる
+- 作成したユーザーで、AWSへのSSOログインを可能にする
 ### 許可セット
 - 1つ以上のIAMポリシーを複数のIdCユーザー・グループに適用するテンプレート
 
@@ -122,7 +121,21 @@ https://dekiru.net/article/16418/#google_vignette
 
 アカウントが作成されたら、スイッチロールでそのアカウントにサインインします。
 
-### IdCユーザー・グループの追加
+### IdCユーザー・グループ・許可セットの追加
+AWSアカウントが作成できたら、その配下にIdCのユーザー・グループを紐づけていきます。
+こちらの記事を参考に実施しました。
+
+https://qiita.com/kyooooonaka/items/af3b36d5e946b3152021
+
+UIに沿って操作すれば、詰まるところはなかったです。
+ユーザー作成時に指定するメールアドレスは、アカウント作成時と同じくエイリアスアドレスを使いました。
+許可セットは任意のポリシーを選びましょう。自分はAdministratorAccessとPowerUserAccessを作成しました。
+
+ユーザー作成するとサインインURLがメールで送られてきます。アクセスすると以下のような画面になります。
+![スクリーンショット 2024-07-22 7.47.57.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/0b4e1677-14de-7e2f-7e58-0522ab274cba.png)
+
+サインイン後は以下のように、自身の親のアカウント名と許可セット名が表示されます。
+![スクリーンショット 2024-07-22 7.50.53.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/b7d58e1c-ad64-ca9d-fa97-fb191cf1f819.png)
 
 # さいごに
 最後に、おひとりさまAWS　Organizationsを実際に行ってみて感じたメリット・デメリットを挙げます。
@@ -133,43 +146,6 @@ https://dekiru.net/article/16418/#google_vignette
 ### デメリット
 - 漢のシングルアカウント運用と比べるとどうしても複雑さは増す
 
-# 下書きメモ
-- AWS Organizations
-  - 無料
-  - 複数のAWSアカウントを管理するサービス
-  - 管理アカウント
-    - Organizationsの管理者アカウント
-  - Organization Unit
-    - OU
-    - Organizaionの単位
-    - 管理アカウントと1対N
-  - メンバーアカウント
-    - Organizationsに属するアカウント
-    - OUと1対N
-- AWS IAM Identity Center
-  - IdC
-  - 無料
-  - SSOログインを可能にする
-  - 許可セット
-    - 1つ以上のIAMポリシーを複数のAWSアカウントに適用するテンプレート
-
-- 手順
-  - Idcからユーザーを新規作成
-  - 作成したユーザーをOrganizationsのRootに招待
-
-
-- Root
-  - Managemet Account
-    - OU 1
-      - AWS Account
-        - IdC Group/User
-        - IdC Group/User
-      - AWS Account
-        - IdC Group/User
-    - OU 2
-      - AWS Account
-        - IdC Group/User
-
 # 参考
 
 https://dev.classmethod.jp/articles/overview-introduction-to-organizations-enabled-configuration-procedure/
@@ -179,3 +155,5 @@ https://www.slideshare.net/slideshow/embed_code/key/kuxZbeoTWPfVLJ
 https://speakerdeck.com/htan/awsgakao-eruzui-di-quan-xian-shi-xian-henoapurotigai-lue-aws-iam-identity-center-noquan-xian-she-ji-nituitemokao-etemiru
 
 https://dekiru.net/article/16418/#google_vignette
+
+https://qiita.com/kyooooonaka/items/af3b36d5e946b3152021
