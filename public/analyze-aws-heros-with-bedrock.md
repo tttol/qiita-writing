@@ -12,8 +12,7 @@ ignorePublish: false
 ---
 # はじめに
 [AWS Heros プログラム](https://aws.amazon.com/jp/developer/community/heroes/?community-heroes-all.sort-by=item.additionalFields.sortPosition&community-heroes-all.sort-order=asc&awsf.filter-hero-category=*all&awsf.filter-location=*all&awsf.filter-year=*all&awsf.filter-activity=*all)というものをご存知でしょうか？
-AWSコミュニティに対して大きく貢献し、コミュニティに多大なる影響を与えた人を称えるプログラムです。
-AWS社員さんの他薦により選出され、選出されたHerosはAWSサービスチームとのディスカッション機会や、AWS re:Inventへの招待券、AWSクレジットなど様々な特典を得ることができます。
+AWSコミュニティに対して大きく貢献し、コミュニティに多大なる影響を与えた人を称えるプログラムです。AWS社員さんの他薦により選出され、選出されたHerosはAWSサービスチームとのディスカッション機会や、AWS re:Inventへの招待券、AWSクレジットなど様々な特典を得ることができます。
 
 AWS Herosにはいくつかのカテゴリが存在します。
 コンテナに精通した人はコンテナヒーロー、活発なコミュニティ活動を行った人はコミュニティヒーロー、など。
@@ -251,3 +250,8 @@ AWS DevTools Herosへの選出は相対的な評価であり、時代ととも�
 # さいごに
 生成AIはこうした1on1の壁打ち相手にとても適していると思います。
 今回はAWS Herosについて分析しましたが、他のテーマでやってみるのも面白いと思います。
+
+:::note warn
+おことわり
+本記事に記載した生成AIの結果はAWS Herosの選考基準を保証するものではなく、あくまで個人的に調査した結果になります。
+:::
