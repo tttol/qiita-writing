@@ -82,7 +82,7 @@ https://aws.amazon.com/developer/community/heroes/yasunori-kirimoto/?did=dh_card
 ```
 
 ふむふむ。
-AWSコミュニティへの大きな貢献や、AWSに関する専門スキル、技術的リーダーシップなどが要因で選出され他人が多いと。
+AWSコミュニティへの大きな貢献や、AWSに関する専門スキル、技術的リーダーシップなどが要因で選出された人が多いと。
 
 
 では、各Herosに共通する部分を聞いてみましょう。
