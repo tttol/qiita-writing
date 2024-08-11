@@ -1,13 +1,13 @@
 ---
 title: Amplify Gen2のライブラリアップデートに半年遅れでキャッチアップします
 tags:
-  - 'Amplify'
-  - 'AWS'
-  - 'Next.js'
-  - 'TypeScript'
+  - AWS
+  - TypeScript
+  - Next.js
+  - amplify
 private: false
-updated_at: ''
-id: null
+updated_at: '2024-08-11T10:34:44+09:00'
+id: 4fb0d8ca290fb1de992a
 organization_url_name: null
 slide: false
 ignorePublish: false
