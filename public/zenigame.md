@@ -13,7 +13,7 @@ ignorePublish: false
 # はじめに
 こんにちは。
 
-この記事では、私がAWS Amplifyを利用して開発・運用している家計管理アプリを紹介します。
+この記事では、私がAWS Amplify（以下Amplifyと呼びます）を利用して開発・運用している家計管理アプリを紹介します。
 実は過去にとある勉強会でもこのアプリについて登壇したことがあります。
 
 https://speakerdeck.com/tttol/amplifytekai-fa-yun-yong-siteiru-ge-ren-kai-fa-ahurishao-jie
@@ -45,12 +45,107 @@ https://speakerdeck.com/tttol/amplifytekai-fa-yun-yong-siteiru-ge-ren-kai-fa-ahu
 自分「んあーーー」←ここで考えるのがめんどくさくなる。
 ```
 
+日々、こうした精算作業を行うのはつらいので、どうにかして立替状況を管理したいところです。
+私が最初に思いついた管理方法は、Googleのスプレッドシートで管理する方法です。
 
+![スクリーンショット 2024-08-18 10.30.40.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/4e3080f0-8f51-01b6-33bb-ba8524791ed0.png)
+
+夫・妻がそれぞれ支払った額と品目を記録していき、最下行のSUMIF関数で各自の最終支払額を計算するものです。
+SUMIFで算出された負債の支払いは毎日行う必要はなく、週に一回・月に一回などまとまったタイミングで精算します。
+
+このスプレッドシートを妻と私で共有し、互いに記録していくことで立替精算を楽にしようと試みました。
 
 # スプレッドシート管理の問題点
-# AWS Amplifyでアプリケーション化
+スプレッドシート管理によりそこそこ楽になったのですが、同時に問題点も浮かんできました。
+
+- スマホからスプレッドシート入力するのが大変
+  - 外出先などで入力するときはスマホアプリ版のスプレッドシートから入力することになる
+  - 画面が小さい・・・
+  - 入力が億劫になり、レシートがどんどん溜まっていく
+- 表がいっぱいになったら行追加が必要。これもスマホからだと大変。
+  - 行が増えるとスクロールが必要になる
+  - ぱっと見で自分に何円分の負債があるのかわからない
+
+といった具合で、**結果的にPCから入力することが多くなり、家で暇な時に一気に入力することが増えます。**
+
+これらの問題点を解決すべく、スプレッドシートの持つ機能をWebアプリケーションに落とし込みます。
+
+# Amplifyでアプリケーション化
+Next.jsでアプリケーションを作成し、Amplify Hostingで公開しました。
+![スクリーンショット 2024-08-18 11.02.07.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/fef6b1fb-9c51-8ce9-c2e1-3672a9c9ee7e.png)
+
 # アプリアーキテクチャ
+アプリのアーキテクチャは以下の通りです。
+![スクリーンショット 2024-08-18 11.03.24.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/45adc200-d966-e2b8-20e9-ebb7eb2ee90c.png)
+
+Amplifyに習熟している方にとってはおなじみの構成だと思います。
+
+### Hosting
+Amplify Hostingを利用しました。
+裏ではS3とCloudFrontが動いており、こちらでHTMLの配信を行います。
+![スクリーンショット 2024-08-18 11.06.08.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/393b1795-239c-08c4-3d3d-df3a535a4377.png)
+
+ここで利用されているS3バケットとCloudFrontディストリビューションは閲覧・編集することができません。
+AWSの内部で管理されているリソースのようです。
+
+### Database & API
+DynamoDBを利用しました。各人の支払った品目をここに保存します。
+CRUD操作はApp Syncを利用してGraphQLで実行します。
+
+Amplifyではamplify/data/resource.tsというファイルが自動で生成され、ここにDynamoDBのアーキテクチャをIaCで記述することができます。
+
+```typescript:amplify/data/resource/ts
+import { a, defineData, type ClientSchema } from '@aws-amplify/backend';
+
+const schema = a.schema({
+  Todo: a.model({
+      content: a.string(),
+      isDone: a.boolean()
+    })
+    .authorization(allow => [allow.group('Admin')]), // User-group based data access
+});
+
+// Used for code completion / highlighting when making requests from frontend
+export type Schema = ClientSchema<typeof schema>;
+
+// defines the data resource to be deployed
+export const data = defineData({
+  schema,
+  authorizationModes: {
+    defaultAuthorizationMode: 'apiKey',
+    apiKeyAuthorizationMode: { expiresInDays: 30 }
+  }
+});
+```
+
+参考
+https://docs.amplify.aws/react/build-a-backend/data/set-up-data/
+https://docs.amplify.aws/react/build-a-backend/data/customize-authz/user-group-based-data-access/
+
+### Auth
+Cognitoを利用しました。
+
+DBと同様に、認証についてもamplify/auth/resource.tsというファイルが自動で生成され、ここに認証のアーキテクチャを記述することができます。
+```typescript:amplify/auth/resource.ts
+import { defineAuth } from "@aws-amplify/backend"
+
+/**
+ * Define and configure your auth resource
+ * @see https://docs.amplify.aws/gen2/build-a-backend/auth
+ */
+export const auth = defineAuth({
+  loginWith: {
+    email: true,
+  },
+})
+```
+
+参考
+https://docs.amplify.aws/react/build-a-backend/auth/set-up-auth/
+
 # アプリ特徴
+アプリケーションの特徴について解説します。
+
 ### 上段にサマリーを表示
 ### プルダウン・デートピッカー・ラジオボダンで手入力作業を極力排除
 ### 私と家族だけがアクセスできるように権限を制御
