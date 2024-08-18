@@ -1,8 +1,9 @@
 ---
-title: AWS Amplifyで家計管理アプリを開発して個人的に運用している話
+title: AWS Amplifyで私用の家計管理アプリを開発して運用している話
 tags:
   - AWS
   - amplify
+  - "Next.js"
 private: false
 updated_at: ''
 id: null
@@ -64,24 +65,25 @@ SUMIFで算出された負債の支払いは毎日行う必要はなく、週に
   - 入力が億劫になり、レシートがどんどん溜まっていく
 - 表がいっぱいになったら行追加が必要。これもスマホからだと大変。
   - 行が増えるとスクロールが必要になる
-  - ぱっと見で自分に何円分の負債があるのかわからない
+- ぱっと見で自分に何円分の負債があるのかわからない
 
 といった具合で、**結果的にPCから入力することが多くなり、家で暇な時に一気に入力することが増えます。**
 
 これらの問題点を解決すべく、スプレッドシートの持つ機能をWebアプリケーションに落とし込みます。
 
 # Amplifyでアプリケーション化
-Next.jsでアプリケーションを作成し、Amplify Hostingで公開しました。
 ![スクリーンショット 2024-08-18 11.02.07.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/fef6b1fb-9c51-8ce9-c2e1-3672a9c9ee7e.png)
 
+Next.jsでアプリケーションを作成し、Amplify Hostingで公開しました。
+
 # アプリアーキテクチャ
-アプリのアーキテクチャは以下の通りです。
 ![スクリーンショット 2024-08-18 11.03.24.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/45adc200-d966-e2b8-20e9-ebb7eb2ee90c.png)
 
+アプリのアーキテクチャは上記の通りです。
 Amplifyに習熟している方にとってはおなじみの構成だと思います。
 
 ### Hosting
-Amplify Hostingを利用しました。
+Amplify Hostingを利用しています。
 裏ではS3とCloudFrontが動いており、こちらでHTMLの配信を行います。
 ![スクリーンショット 2024-08-18 11.06.08.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/393b1795-239c-08c4-3d3d-df3a535a4377.png)
 
@@ -89,7 +91,7 @@ Amplify Hostingを利用しました。
 AWSの内部で管理されているリソースのようです。
 
 ### Database & API
-DynamoDBを利用しました。各人の支払った品目をここに保存します。
+DBはDynamoDBを利用しています。各人の支払った品目をここに保存します。
 CRUD操作はApp Syncを利用してGraphQLで実行します。
 
 Amplifyではamplify/data/resource.tsというファイルが自動で生成され、ここにDynamoDBのアーキテクチャをIaCで記述することができます。
@@ -123,7 +125,7 @@ https://docs.amplify.aws/react/build-a-backend/data/set-up-data/
 https://docs.amplify.aws/react/build-a-backend/data/customize-authz/user-group-based-data-access/
 
 ### Auth
-Cognitoを利用しました。
+認証にはCognitoを利用しています。
 
 DBと同様に、認証についてもamplify/auth/resource.tsというファイルが自動で生成され、ここに認証のアーキテクチャを記述することができます。
 ```typescript:amplify/auth/resource.ts
@@ -147,8 +149,70 @@ https://docs.amplify.aws/react/build-a-backend/auth/set-up-auth/
 アプリケーションの特徴について解説します。
 
 ### 上段にサマリーを表示
+![スクリーンショット 2024-08-18 21.28.29.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/d1f63b86-97f3-9ca7-64fc-19facd1ec369.png)
+> - ぱっと見で自分に何円分の負債があるのかわからない
+
+先述した上記問題点の解決策として、アプリの画面最上部に各人の負債状況をサマリーで表示するようにしました。
+これにより、アプリを表示したときに自身の立替状況がひと目でわかります。
+
+サマリーでは「未払い差引合計」と「差引前」の2項目を表示しています。
+これらはそれぞれ下記の意味を表しています。
+- 「未払い差引合計」・・・互いの未払い金額を引き算して、最終的にどちらが何円払うべきかを差引精算した額を表示
+- 「差引前」・・・各人の未払い額の合計を表示
+
+具体例を挙げます。
+
+画像では夫が2,500円立て替え済み、妻が398円立て替え済みの状態です。
+夫は398円の半額である199円を妻に支払う必要があります。
+妻は2500円の半額である1250円を支払う必要があります。
+この2つの値が、「差引前」に表示される値です。
+
+この2値を差し引きすると、1250 - 199 = 1,051となり、最終的に妻が夫に1,051円支払えばよいということになります。
+
+よって、「未払い差引合計」は夫が0円で妻が1,051円となります。
+
+| | 差引前 | 未払い差引合計 |
+|:-----------|------------:|:------------:|
+|**夫**|¥199|¥0|
+| **妻**|¥1,250|¥1,051|
+
+
 ### プルダウン・デートピッカー・ラジオボダンで手入力作業を極力排除
+![スクリーンショット 2024-08-18 11.02.18.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/06899d3b-44c9-2e90-75dc-e8728bf7abfe.png)
+
+> - スマホからスプレッドシート入力するのが大変
+>   - 外出先などで入力するときはスマホアプリ版のスプレッドシートから入力することになる
+>   - 画面が小さい・・・
+>   - 入力が億劫になり、レシートがどんどん溜まっていく
+
+上述のスマホ操作に関する問題点は、明細作成時の画面の操作性を良くすることで改善しました。
+ラベル選択にはプルダウンを、日付入力はデートピッカーを、支払者の選択はラジオボタンを採用することで、操作性を良くしました。
+
 ### 私と家族だけがアクセスできるように権限を制御
-### 開発環境・本番環境を用意
+冒頭で記載した通りこのアプリは私と妻だけが利用するアプリなので、アプリ内データの閲覧・編集には適切な権限制御が必要です。
+Cognito上の特定のユーザーグループに所属するユーザーのみがDynamoDBにアクセスできるよう、data/resource.tsを編集しました。
+
+```typescript:amplify/data/resource.ts
+const schema = a.schema({
+  Todo: a.model({
+      content: a.string(),
+      isDone: a.boolean()
+    })
+    .authorization(allow => [allow.group('Admin')]), // User-group based data access
+});
+```
+
+`.authorization(allow => [allow.group('Admin')]), // User-group based data access`で`Admin`グループに属するユーザーしかアクセスできないよう制御しています。
+（`Admin`グループはAWSマネジメントコンソールからCognitoにアクセスし、事前に手動で作成しておきます。）
+
 # 運用コスト
+Amplifyの利用料金は従量課金制です。
+
+https://aws.amazon.com/jp/amplify/pricing/
+
+私の家計管理アプリの運用コストは100〜200円/月程度です。
+まあアクティブユーザーが私と妻の2人だけなので、もはやタダみたいなもんですね。
+
 # さいごに
+スプレッドシート管理時代に比べて、アプリで管理するほうが格段に楽になりました。
+アプリはまだまだ粗削りな部分もあり、たまにバグも見つかるので、マイペースにメンテナンスしていこうかと思います。
