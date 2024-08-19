@@ -2,11 +2,11 @@
 title: AWS Amplifyで私用の家計管理アプリを開発して運用している話
 tags:
   - AWS
+  - Next.js
   - amplify
-  - "Next.js"
 private: false
-updated_at: ''
-id: null
+updated_at: '2024-08-20T07:05:07+09:00'
+id: d79b5e67de4c33e27858
 organization_url_name: null
 slide: false
 ignorePublish: false
