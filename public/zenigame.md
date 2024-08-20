@@ -5,7 +5,7 @@ tags:
   - Next.js
   - amplify
 private: false
-updated_at: '2024-08-20T15:28:34+09:00'
+updated_at: '2024-08-20T15:29:35+09:00'
 id: d79b5e67de4c33e27858
 organization_url_name: null
 slide: false
