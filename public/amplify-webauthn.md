@@ -32,6 +32,7 @@ https://github.com/tttol/amplify-passwordless-auth/tree/main
 `$ npm run dev`でアプリを起動すると、サインイン画面が表示されます。
 ![スクリーンショット 2024-09-30 7.01.59.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/bdfefd0b-a0c1-e593-60fc-90cae303a7eb.png)
 
+### Magic Linkでサインイン
 初回訪問時はパスキーの登録がないため、メールアドレスでサインインします。`Enter your e-mail address to sign in:`からメールアドレスを入力して次に進みます。そして、`Sign in with magic link`を選択します。
 ![スクリーンショット 2024-09-30 7.11.14.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/72a6b24c-d088-6615-2da0-053577102aca.png)
 
@@ -47,6 +48,29 @@ magic linkとは、サインイン用に発行されるURLのことです。ユ�
 ※ちなみに私は未設定だったのでRoute 53で安ドメインを取ってSESに登録しました。ここの作業ログもいつか記事にしたいと思います。
 :::
 
+### パスキーを登録
+magic linkでのサインインが成功すると、以下の画面に遷移します。
+右上トーストの`Register new authenticator`からパスキー認証に利用するデバイスを登録することができます。
+![スクリーンショット 2024-09-30 8.04.15.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/8454addc-c40e-c85d-afba-5c32f63da05d.png)
+
+私の環境（MacBook）ではTouch IDを要求されました。指紋認証で進めていきます。
+![スクリーンショット 2024-09-30 8.06.09.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/8afd2127-1ade-b75b-5273-68c9e4e12274.png)
+
+Touch ID認証に成功すると、デバイス名を入力を促されます。`macbook`などとしておきます。
+![スクリーンショット 2024-09-30 8.07.26.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/3756dbd6-3a79-da1b-7e0f-4c908edde1e0.png)
+
+これで登録完了です。
+![スクリーンショット 2024-09-30 8.10.25.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/5d36a1f3-b5f5-731c-232f-3289cf4bdc67.png)
+
+### パスキーでサインイン
+先ほど登録したパスキーでサインインしてみます。一度サインアウトして、今度は`Sign in with face or touch`を選択します。
+![スクリーンショット 2024-09-30 7.11.14.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/72a6b24c-d088-6615-2da0-053577102aca.png)
+
+Touch IDを求められます。
+![スクリーンショット 2024-09-30 8.15.15.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/c720f7f3-9090-857b-f598-3d7e47e4030f.png)
+
+認証に成功しました。
+![スクリーンショット 2024-09-30 8.16.38.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/ea0979e0-59ae-3b96-4f60-370424f201a5.png)
 # 実装の解説
 ### 1. AmplifyでWebアプリケーションを作成する
 まずはWebアプリケーションを作成します。フレームワークの選択肢は色々ありますが私はNext.jsを採用しました。ここはAmplifyの公式ドキュメントを参考に進めます。
