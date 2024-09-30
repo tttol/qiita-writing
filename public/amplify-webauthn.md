@@ -11,7 +11,8 @@ ignorePublish: false
 ---
 # はじめに
 AWS Amplify(以下Amplifyと呼ぶ)で作ったWebアプリケーションにパスキー認証を導入した際の作業ログです。
-「Amplify × パスキー認証」に関する情報はググってもあまりHITしなかったので、記事にしておこうと思った次第です。
+個人で開発しているAmplify製のWebアプリにパスキー認証機能を導入したいなと思い、色々調べた結果を本記事にまとめました。
+（「Amplify × パスキー認証」に関する情報はググってもあまりHITしなかったので、記事にしておこうと思った次第です。）
 使用してるフレームワークやライブラリのバージョンは執筆時点でのlatestもしくはstableなバージョンを採用しています。参考にされる場合はその点ご留意ください。
 
 # サンプルアプリケーションの解説
@@ -85,7 +86,7 @@ const userPool = backend.auth.resources.userPool as cdk.aws_cognito.UserPool;
 const userPoolClient = backend.auth.resources.userPoolClient as cdk.aws_cognito.UserPoolClient;
 const authStack = Stack.of(userPool);
 
-const passwordless = new Passwordless(authStack, "ZenigamePasskeyAuth", {
+const passwordless = new Passwordless(authStack, "Passwordless", {
   userPool,
   userPoolClients: [userPoolClient],
   allowedOrigins: [
@@ -130,19 +131,17 @@ backend.addOutput({
 ```
 > page.tsx全文：https://github.com/tttol/amplify-passwordless-auth/blob/main/src/app/page.tsx
 
-パスキーの登録・認証処理に必要な情報を`Passwordless.configure`で定義します。CognitoのクライアントIDやエンドポイントはamplify_outputs.jsonから引用します。
+パスキーの登録・認証処理に必要な情報を`Passwordless.configure`で定義します。CognitoのユーザープールクライアントIDやエンドポイントはamplify_outputs.jsonから引用します。
 
 # WebAuthnについて
 ここからは仕様の解説を行います。
 
-
-WebAuthn(ウェブオースン)とは、パスワードレス認証や、 SMS テキストを用いない安全な二要素認証を実現する仕様です。今回のパスキー認証もWebAuthnを用いて実現しています。実装上では[navigator.credentials.create()](https://developer.mozilla.org/ja/docs/Web/API/CredentialsContainer/create)と[navigator.credentials.get()](https://developer.mozilla.org/en-US/docs/Web/API/CredentialsContainer/get)というAPIを用いて認証処理を実現します。
+今回のパスキー認証はWebAuthnという仕様を用いて実現しています。WebAuthn(ウェブオースン)とは、パスワードレス認証や、 SMS テキストを用いない安全な二要素認証を実現する仕様です。実装上では[navigator.credentials.create()](https://developer.mozilla.org/ja/docs/Web/API/CredentialsContainer/create)と[navigator.credentials.get()](https://developer.mozilla.org/en-US/docs/Web/API/CredentialsContainer/get)というAPIを用いて認証処理を実現します。
 詳しくは[こちら](https://developer.mozilla.org/ja/docs/Web/API/Web_Authentication_API)を御覧ください。
 
-create()はキーペアの生成を行い、get()は認証の際に認証器からクレデンシャルを取得してチャレンジの署名を行います。
-以下にそれぞれのフローをシーケンス図にしたものを記載します。
+パスキー登録フローとパスキー認証のフローをそれぞれシーケンス図にしたものが以下です。
 
-＜鍵登録時のフロー＞
+**＜パスキー登録フロー＞**
 ```mermaid
 sequenceDiagram
     autonumber
@@ -155,7 +154,7 @@ sequenceDiagram
     Browser->>Server: 鍵の登録をリクエスト
     Server->>Server: challengeを生成
     Server->>Authenticator: challengeを送信
-    Authenticator->>User: 認証要求
+    Authenticator->>User: 生体認証を要求
     User->>Authenticator: 生体認証で本人確認
     Authenticator->>Authenticator: 公開鍵/秘密鍵のペアを生成しchallengeを署名
     Authenticator->>Server: 署名済みchallengeと公開鍵を送信
@@ -164,7 +163,12 @@ sequenceDiagram
     Server->>Browser: 登録完了通知
 ```
 
-＜認証フロー＞
+:::note info
+- `Authenticator`・・・認証器のことです。秘密鍵の保管を行います。
+- `challenge`・・・ランダムな文字列で構成された値です。
+:::
+
+**＜パスキー認証フロー＞**
 ```mermaid
 sequenceDiagram
     autonumber
@@ -184,10 +188,49 @@ sequenceDiagram
     Server->>Server: DBに認証結果を記録
     Server->>Browser: 認証/拒否
 ```
-`Authenticator`は認証器のことです。ユーザーに生体認証を要求します。また、秘密鍵の保管も認証器が行います。
 
-### Amazon Cognitoへの適用
+# WebAuthnをCognitoへ適用
+WebAuthnをCognitoの認証処理に適用させるためには、Cognitoのカスタム認証フローという仕組みを利用します。
+https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-challenge.html
+
+Cognitoの認証フローはデフォルトではメールアドレス＆パスワードを用いたサインインフローになりますが、カスタム認証フローを利用することでパスワードレスな認証や二要素認証を導入することが可能になります。カスタム認証フローのシーケンスは下図のとおりです。
+
+![lambda-challenges (1).png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/fb47506c-f998-aa62-93d3-7b8fae0adf52.png)
+
+右側3つにあるLambda関数がカスタム認証フローの肝の部分です。
+
+| Lambda | 説明 |
+|:-|:-|
+|[DefineAuth](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-define-auth-challenge.html)|クライアントからの認証要求リクエストをもとに、どの認証方式を使用するかを定義します。例：magic link, 二要素認証(OTP等), パスキー認証etc...|
+|[CreateAuthChallenge](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-create-auth-challenge.html)|認証に利用するchallengeを生成してクライアントに送信します。challengeの値はDynamoDB等のDBに保存し、後にコールされるVerifyAuthChallengeResponseで再び参照します。セキュリティの観点から、**challengeはサーバー側で生成することが推奨されています。**|
+|[VerifyAuthChallengeResponse](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-verify-auth-challenge-response.html)|クライアントが送信した署名付きchallengeの値を検証します。検証に成功した場合は認証OKとみなされます。|
+
+今回のサンプルアプリケーションでは、backend.tsの以下記述の部分で上記3つのLambda関数がCDKで生成されるようになっています。
+```typescript:再掲：backend.ts(一部抜粋)
+const userPool = backend.auth.resources.userPool as cdk.aws_cognito.UserPool;
+const userPoolClient = backend.auth.resources.userPoolClient as cdk.aws_cognito.UserPoolClient;
+const authStack = Stack.of(userPool);
+
+const passwordless = new Passwordless(authStack, "Passwordless", {
+  userPool,
+  userPoolClients: [userPoolClient],
+  allowedOrigins: [
+    FRONTEND_URL!
+  ],
+  fido2: {
+    allowedRelyingPartyIds: [
+      FRONTEND_HOST!
+    ],
+  },
+});
+```
 # さいごに 
+簡単に説明しましたが、以上が「Amplify × パスキー認証」の仕様と実装の説明になります。
+正直、パスキー認証処理のコアの部分は[aws-samples/amazon-cognito-passwordless-auth](https://github.com/aws-samples/amazon-cognito-passwordless-auth/tree/main)に任せているので、AWSサンプル様様なところがあります。サンプルを使わずに自力で全部実装しようと思ったこともありましたが、大変すぎるので断念しました。
+商用利用で本格的にAmplifyでパスキー認証を導入する場合は自前で実装＆メンテする覚悟が必要かと思いますが、冒頭に書いた通り今回は個人開発アプリでの利用なので「AWSサンプルで許してね」って感じです。
+
+ここまで読んでいただきありがとうございました。
+
 # 参考
 
 https://github.com/aws-samples/amazon-cognito-passwordless-auth/tree/main
