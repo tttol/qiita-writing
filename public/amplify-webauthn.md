@@ -72,10 +72,6 @@ Touch IDを求められます。
 認証に成功しました。
 ![スクリーンショット 2024-09-30 8.16.38.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/ea0979e0-59ae-3b96-4f60-370424f201a5.png)
 # 実装の解説
-### 1. AmplifyでWebアプリケーションを作成する
-まずはWebアプリケーションを作成します。フレームワークの選択肢は色々ありますが私はNext.jsを採用しました。ここはAmplifyの公式ドキュメントを参考に進めます。
-https://docs.amplify.aws/nextjs/start/
-
 ### 2. amazon-cognito-passwordless-authの導入
 npm, yarn等で`amazon-cognito-passwordless-auth`をインストールします。
 ```bash
@@ -127,11 +123,6 @@ page.tsx全文：https://github.com/tttol/amplify-passwordless-auth/blob/main/sr
   });
 ```
 
-### 4. 動作確認
-
-### amazon-cognito-passwordless-authの導入
-### バックエンドのコード修正
-### フロントエンドのコード修正
 # 仕様の解説
 ### WebAuthnの仕様
 ### Amazon Cognitoへの適用
