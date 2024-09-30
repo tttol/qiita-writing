@@ -80,7 +80,6 @@ npm i amazon-cognito-passwordless-auth
 
 ### ソースコード修正
 backend.tsに以下を追記します。
-backend.ts全文：https://github.com/tttol/amplify-passwordless-auth/blob/main/amplify/backend.ts
 ```typescript:backend.ts(一部抜粋)
 const userPool = backend.auth.resources.userPool as cdk.aws_cognito.UserPool;
 const userPoolClient = backend.auth.resources.userPoolClient as cdk.aws_cognito.UserPoolClient;
@@ -105,10 +104,11 @@ backend.addOutput({
   },
 });
 ```
+> backend.ts全文：https://github.com/tttol/amplify-passwordless-auth/blob/main/amplify/backend.ts
+
 パスキー認証に必要なLambda関数やIAMロールなどが`new Passwordless`のコンストラクタ内でCDKのスタックとして記述されています。それらのスタックをbackend.tsに記述することで、Amplifyのリソースとして作成されます。
 
 次に、フロントエンドのコードも修正します。以下をpage.tsx等に追記します。
-page.tsx全文：https://github.com/tttol/amplify-passwordless-auth/blob/main/src/app/page.tsx
 ```typescript:page.tsx(一部抜粋)
   import { Amplify } from "aws-amplify";
   import outputs from "@/../amplify_outputs.json";
@@ -128,10 +128,64 @@ page.tsx全文：https://github.com/tttol/amplify-passwordless-auth/blob/main/sr
     },
   });
 ```
+> page.tsx全文：https://github.com/tttol/amplify-passwordless-auth/blob/main/src/app/page.tsx
+
 パスキーの登録・認証処理に必要な情報を`Passwordless.configure`で定義します。CognitoのクライアントIDやエンドポイントはamplify_outputs.jsonから引用します。
 
-# 仕様の解説
-### WebAuthnの仕様
+# WebAuthnについて
+ここからは仕様の解説を行います。
+
+
+WebAuthn(ウェブオースン)とは、パスワードレス認証や、 SMS テキストを用いない安全な二要素認証を実現する仕様です。今回のパスキー認証もWebAuthnを用いて実現しています。実装上では[navigator.credentials.create()](https://developer.mozilla.org/ja/docs/Web/API/CredentialsContainer/create)と[navigator.credentials.get()](https://developer.mozilla.org/en-US/docs/Web/API/CredentialsContainer/get)というAPIを用いて認証処理を実現します。
+詳しくは[こちら](https://developer.mozilla.org/ja/docs/Web/API/Web_Authentication_API)を御覧ください。
+
+create()はキーペアの生成を行い、get()は認証の際に認証器からクレデンシャルを取得してチャレンジの署名を行います。
+以下にそれぞれのフローをシーケンス図にしたものを記載します。
+
+＜鍵登録時のフロー＞
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant Authenticator
+    participant Browser
+    participant Server
+
+    User->>Browser: 登録要求
+    Browser->>Server: 鍵の登録をリクエスト
+    Server->>Server: challengeを生成
+    Server->>Authenticator: challengeを送信
+    Authenticator->>User: 認証要求
+    User->>Authenticator: 生体認証で本人確認
+    Authenticator->>Authenticator: 公開鍵/秘密鍵のペアを生成しchallengeを署名
+    Authenticator->>Server: 署名済みchallengeと公開鍵を送信
+    Server->>Server: challengeを検証
+    Server->>Server: 公開鍵・デバイス情報をDBに登録
+    Server->>Browser: 登録完了通知
+```
+
+＜認証フロー＞
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant Authenticator
+    participant Browser
+    participant Server
+
+    User->>Browser: 認証要求開始
+    Browser->>Server: APIへリクエスト
+    Server->>Authenticator: 署名の送信を要求
+    Authenticator->>User: 認証要求
+    User->>Authenticator: 生体認証で本人確認
+    Authenticator->>Authenticator: 秘密鍵で署名作成
+    Authenticator->>Server: 署名を返す
+    Server->>Server: 公開鍵で署名の検証
+    Server->>Server: DBに認証結果を記録
+    Server->>Browser: 認証/拒否
+```
+`Authenticator`は認証器のことです。ユーザーに生体認証を要求します。また、秘密鍵の保管も認証器が行います。
+
 ### Amazon Cognitoへの適用
 # さいごに 
 # 参考
