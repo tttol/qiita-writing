@@ -72,14 +72,13 @@ Touch IDを求められます。
 認証に成功しました。
 ![スクリーンショット 2024-09-30 8.16.38.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/ea0979e0-59ae-3b96-4f60-370424f201a5.png)
 # 実装の解説
-### 2. amazon-cognito-passwordless-authの導入
-npm, yarn等で`amazon-cognito-passwordless-auth`をインストールします。
+### amazon-cognito-passwordless-authの導入
+`amazon-cognito-passwordless-auth`をプロジェクトにインストールします。
 ```bash
-# npmの場合のみ記載します
 npm i amazon-cognito-passwordless-auth
 ```
 
-### 3. ソースコード修正
+### ソースコード修正
 backend.tsに以下を追記します。
 backend.ts全文：https://github.com/tttol/amplify-passwordless-auth/blob/main/amplify/backend.ts
 ```typescript:backend.ts(一部抜粋)
@@ -106,10 +105,17 @@ backend.addOutput({
   },
 });
 ```
+パスキー認証に必要なLambda関数やIAMロールなどが`new Passwordless`のコンストラクタ内でCDKのスタックとして記述されています。それらのスタックをbackend.tsに記述することで、Amplifyのリソースとして作成されます。
 
 次に、フロントエンドのコードも修正します。以下をpage.tsx等に追記します。
 page.tsx全文：https://github.com/tttol/amplify-passwordless-auth/blob/main/src/app/page.tsx
 ```typescript:page.tsx(一部抜粋)
+  import { Amplify } from "aws-amplify";
+  import outputs from "@/../amplify_outputs.json";
+  import { Passwordless } from "amazon-cognito-passwordless-auth";
+
+  // （中略）
+
   Amplify.configure(outputs);
   Passwordless.configure({
     clientId: outputs.auth.user_pool_client_id,
@@ -122,6 +128,7 @@ page.tsx全文：https://github.com/tttol/amplify-passwordless-auth/blob/main/sr
     },
   });
 ```
+パスキーの登録・認証処理に必要な情報を`Passwordless.configure`で定義します。CognitoのクライアントIDやエンドポイントはamplify_outputs.jsonから引用します。
 
 # 仕様の解説
 ### WebAuthnの仕様
