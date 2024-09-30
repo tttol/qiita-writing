@@ -11,16 +11,15 @@ ignorePublish: false
 ---
 # はじめに
 AWS Amplify(以下Amplifyと呼ぶ)で作ったWebアプリケーションにパスキー認証を導入した際の作業ログです。
-個人で開発しているAmplify製のWebアプリにパスキー認証機能を導入したいなと思い、色々調べた結果を本記事にまとめました。
-（「Amplify × パスキー認証」に関する情報はググってもあまりHITしなかったので、記事にしておこうと思った次第です。）
+個人で開発しているAmplify製のWebアプリにパスキー認証機能を導入したいなと思い、色々調べた結果を本記事にまとめました。（「Amplify × パスキー認証」に関する情報はググってもあまりHITしなかったので、記事にしておこうと思った次第です。）
 使用してるフレームワークやライブラリのバージョンは執筆時点でのlatestもしくはstableなバージョンを採用しています。参考にされる場合はその点ご留意ください。
 
 # サンプルアプリケーションの解説
-↓私が作ったサンプルアプリケーションはこちらです。
+↓本記事用に作ったサンプルアプリケーションがあるので、これをベースに解説していきます。
 
 https://github.com/tttol/amplify-passwordless-auth/tree/main
 
-私のサンプルでは[aws-samples/amazon-cognito-passwordless-auth](https://github.com/aws-samples/amazon-cognito-passwordless-auth/tree/main)というAWSが公式に配布しているサンプルをnpm installして利用しています。また、公式サンプルには[end-to-end example](https://github.com/aws-samples/amazon-cognito-passwordless-auth/tree/main/end-to-end-example)というReactのサンプルアプリケーションが用意されており、こちらを参考に作ったものとなります。
+このサンプルは、[aws-samples/amazon-cognito-passwordless-auth](https://github.com/aws-samples/amazon-cognito-passwordless-auth/tree/main)というAWSが公式に配布しているサンプルの中にある[end-to-end example](https://github.com/aws-samples/amazon-cognito-passwordless-auth/tree/main/end-to-end-example)というReactのサンプルアプリケーションを参考に作ったものとなります。
 
 :::note warn
 [aws-samples/amazon-cognito-passwordless-auth](https://github.com/aws-samples/amazon-cognito-passwordless-auth/tree/main)はサンプルにしてはかなりしっかり実装されていますが、あくまでもサンプルなので、今後このリポジトリが継続的にメンテナンスされるかどうかはわかりません。
@@ -30,10 +29,11 @@ https://github.com/tttol/amplify-passwordless-auth/tree/main
 サンプルアプリケーションの構成は以下のとおりです。
 ※ここにmermaid製のAWSアーキテクチャ図
 
+
+### Magic Linkでサインイン
 `$ npm run dev`でアプリを起動すると、サインイン画面が表示されます。
 ![スクリーンショット 2024-09-30 7.01.59.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/bdfefd0b-a0c1-e593-60fc-90cae303a7eb.png)
 
-### Magic Linkでサインイン
 初回訪問時はパスキーの登録がないため、メールアドレスでサインインします。`Enter your e-mail address to sign in:`からメールアドレスを入力して次に進みます。そして、`Sign in with magic link`を選択します。
 ![スクリーンショット 2024-09-30 7.11.14.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/72a6b24c-d088-6615-2da0-053577102aca.png)
 
@@ -190,12 +190,12 @@ sequenceDiagram
 ```
 
 # WebAuthnをCognitoへ適用
-WebAuthnをCognitoの認証処理に適用させるためには、Cognitoのカスタム認証フローという仕組みを利用します。
-https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-challenge.html
+WebAuthnをCognitoの認証処理に適用させるためには、Cognitoの[カスタム認証フロー](https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-challenge.html)という仕組みを利用します。
 
 Cognitoの認証フローはデフォルトではメールアドレス＆パスワードを用いたサインインフローになりますが、カスタム認証フローを利用することでパスワードレスな認証や二要素認証を導入することが可能になります。カスタム認証フローのシーケンスは下図のとおりです。
 
 ![lambda-challenges (1).png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/fb47506c-f998-aa62-93d3-7b8fae0adf52.png)
+> 引用：https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-challenge.html
 
 右側3つにあるLambda関数がカスタム認証フローの肝の部分です。
 
