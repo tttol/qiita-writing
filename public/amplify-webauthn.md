@@ -21,13 +21,8 @@ https://github.com/tttol/amplify-passwordless-auth/tree/main
 
 このサンプルは、[aws-samples/amazon-cognito-passwordless-auth](https://github.com/aws-samples/amazon-cognito-passwordless-auth/tree/main)というAWSが公式に配布しているサンプルの中にある[end-to-end example](https://github.com/aws-samples/amazon-cognito-passwordless-auth/tree/main/end-to-end-example)というReactのサンプルアプリケーションを参考に作ったものとなります。
 
-:::note warn
-[aws-samples/amazon-cognito-passwordless-auth](https://github.com/aws-samples/amazon-cognito-passwordless-auth/tree/main)はサンプルにしてはかなりしっかり実装されていますが、あくまでもサンプルなので、今後このリポジトリが継続的にメンテナンスされるかどうかはわかりません。
-（実際、aws-samplesの中には公開して数年後にpublic archiveになっているリポジトリもあります。）
-:::
-
 サンプルアプリケーションの構成は以下のとおりです。
-![webauthn.drawio.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/125be812-2b1a-9a9e-51e6-568d9055bfdd.png)
+![webauthn3.drawio.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/b9a30c4a-5465-1615-710c-11f8e97fd631.png)
 
 ### Magic Linkでサインイン
 `$ npm run dev`でアプリを起動すると、サインイン画面が表示されます。
