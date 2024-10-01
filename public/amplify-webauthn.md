@@ -1,7 +1,7 @@
 ---
 title: AWS Amplify製のアプリにパスキー認証を導入する方法
 tags:
-  - 'AWS Amplify'
+  - 'Amplify'
 private: false
 updated_at: ''
 id: null
