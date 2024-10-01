@@ -27,8 +27,7 @@ https://github.com/tttol/amplify-passwordless-auth/tree/main
 :::
 
 サンプルアプリケーションの構成は以下のとおりです。
-※ここにmermaid製のAWSアーキテクチャ図
-
+![webauthn.drawio.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/125be812-2b1a-9a9e-51e6-568d9055bfdd.png)
 
 ### Magic Linkでサインイン
 `$ npm run dev`でアプリを起動すると、サインイン画面が表示されます。
