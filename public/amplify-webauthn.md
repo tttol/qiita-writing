@@ -1,7 +1,10 @@
 ---
 title: AWS Amplify製のアプリにパスキー認証を導入する方法
 tags:
+  - Next.js
   - amplify
+  - WebAuthn
+  - パスキー
 private: false
 updated_at: '2024-10-02T07:03:01+09:00'
 id: ac4f6562eee4fbe49655
