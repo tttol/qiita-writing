@@ -1,5 +1,5 @@
 ---
-title: Next.js(SSG)なアプリをAWS Amplifyにデプロイする際の注意点まとめ2024
+title: Next.js(SSG)のアプリをAWS Amplifyにデプロイする際の注意点まとめ - 2024
 tags:
   - 'Amplfy'
 private: false
@@ -10,7 +10,11 @@ slide: false
 ignorePublish: false
 ---
 # はじめに
-Next.jsのSSG(Static Site Generation)で作成したWebアプリケーションをAWS Amplifyにデプロイする際、いくつかハマりポイントがありました。忘れないよう記事にしておこうと思います。
+Next.jsのSSG(Static Site Generation)で作成したWebアプリケーションをAWS Amplifyにデプロイする際、いくつかハマりポイントがありました。ネットで調べてもPage Router時代の古い情報は多く、App Routerの場合の情報が少なかったため、忘れないよう記事にしておこうと思います。
+
+:::note warn
+フレームワーク・ライブラリ等のバージョンは執筆時点でのlatestもしくはstableなバージョンを利用しています。参考にされる際はこの点ご留意ください。
+:::
 
 # SSGとは
 Static Site Generationの略です。Next.jsで実装したアプリケーションを`next build`でビルドする際に静的なコンテンツ(HTML, CSS)に落とし込み、それらをCDNでキャッシュして配信することで高速なレスポンスを実現できます。静的コンテンツと聞くと利用シーンが限定されそうに聞こえますが、外部へのデータフェッチを行うアプリケーションであってもSSGを利用することができます。（ソースコード側で少し工夫は必要）
@@ -76,6 +80,17 @@ Amplifyにアプリをデプロイすると、Amplify側でアプリケーショ
 
 https://awscli.amazonaws.com/v2/documentation/api/latest/reference/amplify/update-app.html
 
+ちなみに、フレームワークを`Next.js - SSG`、プラットフォームを`WEB`に、amplify.ymlのbaseDirectoryを`out`にしてデプロイしたところ、`_next/static`にコンテンツが保存されてました。まとめると、以下2パターンのどちらかであればデプロイに成功するっぽい？
+
+- パターン1
+  - framework: `Next.js - SSG`
+  - platform: `WEB`
+  - amplify.yml: $frontend.artifacts.baseDirectory: `out`
+- パターン2
+  - framework: `Next.js - SSR`
+  - platform: `WEB_COMPUTE`
+  - amplify.yml: $frontend.artifacts.baseDirectory: `.next`
+
 余談ですが、`フレームワーク`と`プラットフォーム`はGUIから変更できないため、変更が必要な場合はCLIから実行する必要があります。
 ```bash
 # change platform
@@ -83,7 +98,6 @@ $ aws amplify update-app --app-id <value> --platform WEB_COMPUTE
 # change framework
 $ aws amplify update-branch --app-id <value> --branch-name <value> --framework 'Next.js - SSG'
 ```
-
 
 :::note info
 SSGなのにSSRを指定する、というのはユーザーの混乱を招く仕様なので、いずれ仕様変更されるんじゃないかと想像してます。
