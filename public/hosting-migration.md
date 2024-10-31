@@ -12,6 +12,7 @@ ignorePublish: false
 ---
 # はじめに
 2024/10/30に「Simplify and enhance Amazon S3 static website hosting with AWS Amplify Hosting」というタイトルのアナウンスが発表されました。
+
 https://aws.amazon.com/jp/blogs/aws/simplify-and-enhance-amazon-s3-static-website-hosting-with-aws-amplify/
 
 S3のコンソールから静的ウェブサイトホスティングを実行しようとすると、Amplify Hostingを推奨する旨の誘導が追記されました。
