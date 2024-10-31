@@ -1,5 +1,5 @@
 ---
-title: S3のコンソールからAmplify Hostingを使えるようになったぞ
+title: S3のコンソールからAmplify Hostingを使えるようになったぞ！
 tags:
   - 'Amplify'
   - "S3"
