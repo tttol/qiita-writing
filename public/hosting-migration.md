@@ -1,11 +1,11 @@
 ---
 title: S3のコンソールからAmplify Hostingを使えるようになったぞ！
 tags:
-  - 'Amplify'
-  - "S3"
+  - S3
+  - amplify
 private: false
-updated_at: ''
-id: null
+updated_at: '2024-11-01T08:29:22+09:00'
+id: 6d890fa96c873b229f1f
 organization_url_name: null
 slide: false
 ignorePublish: false
