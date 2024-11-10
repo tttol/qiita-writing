@@ -1,10 +1,10 @@
 ---
 title: JVMを意図的にクラッシュさせる方法
 tags:
-  - 'Java'
+  - Java
 private: false
-updated_at: ''
-id: null
+updated_at: '2024-11-10T09:52:37+09:00'
+id: 31ba0e6b2fd29961e8d0
 organization_url_name: null
 slide: false
 ignorePublish: false

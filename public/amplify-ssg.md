@@ -1,10 +1,10 @@
 ---
 title: Next.js(SSG)のアプリをAWS Amplifyにデプロイする際の注意点まとめ - 2024
 tags:
-  - 'Amplfy'
+  - Amplfy
 private: false
-updated_at: ''
-id: null
+updated_at: '2024-11-10T09:52:37+09:00'
+id: ed9ba28469842945da29
 organization_url_name: null
 slide: false
 ignorePublish: false
