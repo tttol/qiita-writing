@@ -16,7 +16,7 @@ ignorePublish: false
 私は業務でJavaを利用し始めておよそ5年以上経過します。毎日使っているプログラミング言語の仮想マシンのことなので、これはエンジニアとして知っておくべきだなあと思い、色々試してみました。その過程と結果を記事にまとめます。
 
 # Unsafeクラスを使ってNULL参照
-ピュアJavaでJVMクラッシュを再現する場合、sum.misc.Unsafeクラスを使って不正なメモリ操作を実行することでクラッシュが可能です。
+ピュアJavaでJVMクラッシュを再現する場合、sun.misc.Unsafeクラスを使って不正なメモリ操作を実行することでクラッシュが可能です。
 ```java
 import sun.misc.Unsafe;
 
@@ -55,7 +55,7 @@ zsh: abort      /usr/bin/env  -XX:+ShowCodeDetailsInExceptionMessages -cp  Crash
 ```
 
 `SIGSEGV (0xb) at pc=0x000000010837af80, pid=70206, tid=5635`とあるように、Segmentation Faultが発生していることがわかります。
-`unsafe.putAddress(address, 0L); `がOSのメモリアドレス 0にJVMがアクセスしようとし、不正なメモリアクセスと判断されOSがJVMのプロセスを終了させたことになります。ほとんどのOSではメモリアドレス 0はOSに保護された領域とされており、アドレス0へのアクセスは無効とするよう設計されています。C言語などの低レベル操作を実行できる言語では、アドレス0はNULLに対応する特別な値とされています。
+`unsafe.putAddress(address, 0L); `がOSのメモリアドレス 0にJVMがアクセスしようとしたため不正なメモリアクセスと判断されます。これによりOSがSIGSEGVを発信しそのシグナルを受けとったJVMはエラーを出力し、Javaのプロセス自体を終了させます。ほとんどのOSではメモリアドレス 0はOSに保護された領域とされており、アドレス0へのアクセスは無効とするよう設計されています。C言語などの低レベル操作を実行できる言語では、アドレス0はNULLに対応する特別な値とされています。
 
 なお、Unsafeクラスとは低レベルレイヤーのメモリ操作を実行することができるクラスです。クラス名からわかるように危険な操作なため、本番環境で利用することは想定されていません。アプリケーションがクラッシュする恐れがあるためです。上述したコードではリフレクションを使ってUnsafeクラスを利用しました。これは、Unsafeクラスを直接使おうとすると例外が発生するためです。
 
@@ -77,7 +77,31 @@ Exception in thread "main" java.lang.SecurityException: Unsafe
         at CrashUnsafeFail.main(CrashUnsafeFail.java:5)
 ```
 
-`Unsafe.getUnsafe()`で直接呼び出そうとするとSecurityExceptionがスローされます。
+`Unsafe.getUnsafe()`で直接呼び出そうとするとSecurityExceptionがスローされます。これはJavaのセキュリティモデルに基づくアクセス制限が課されているためです。getUnsafeのソースコードを見ると以下の通りSecurityExceptionをスローしていることがわかります。
+```java
+    @CallerSensitive
+    public static Unsafe getUnsafe() {
+        Class<?> caller = Reflection.getCallerClass();
+        if (!VM.isSystemDomainLoader(caller.getClassLoader()))
+            throw new SecurityException("Unsafe");
+        return theUnsafe;
+    }
+```
+
+そして、メソッドに`@CallerSensitive`アノテーションがついています。JavaDocを確認すると、このアノテーションが付与された対象はReflectionクラスかそれと同等に値するものから呼び出すよう記載されていました。
+```java
+/**
+ * A method annotated @CallerSensitive is sensitive to its calling class,
+ * via {@link jdk.internal.reflect.Reflection#getCallerClass Reflection.getCallerClass},
+ * or via some equivalent.
+ *
+ * @author John R. Rose
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target({METHOD})
+public @interface CallerSensitive {
+}
+```
 
 # NULL参照するC言語コードをネイティブ実行
 Unsafeを使わない方法として、ネイティブコード実行を使ってC言語の力を借りる方法があります。
@@ -172,7 +196,7 @@ Exception in thread "main" java.lang.NullPointerException: Cannot invoke "Object
         at NPE.main(NPE.java:4)
 ```
 
-nullの変数に対して何かを参照しようとすることでNPEが発生しています。この事象はJVM上で動くプログラムの中で発生しているため、JVMがNULL参照を検知してNPEをスローしてくれます。
+nullの変数に対して何かを参照しようとすることでNPEが発生しています。この事象はJVM上で動くプログラムの中で発生しているため、JVMがNULL参照を検知してNPEをスローしてくれます。JVMのメモリ保護機構一環としてNPEがスローされています。
 
 一方で、SIGSEGVはOSレベルでの不正なメモリアクセスを報告するシグナルです。JVMは何かしらのOS上で実行するので必ずJVMの外にはOSが存在します。JVMを超え、OS上で不正なメモリアクセスを行った場合はOSがSIGSEGVを発信し、JVMのプロセス自体が終了します。
 
