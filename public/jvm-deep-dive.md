@@ -57,8 +57,9 @@ zsh: abort      /usr/bin/env  -XX:+ShowCodeDetailsInExceptionMessages -cp  Crash
 `SIGSEGV (0xb) at pc=0x000000010837af80, pid=70206, tid=5635`とあるように、Segmentation Faultが発生していることがわかります。
 `unsafe.putAddress(address, 0L); `がOSのメモリアドレス 0にJVMがアクセスしようとしたため不正なメモリアクセスと判断されます。これによりOSがSIGSEGVを発信しそのシグナルを受けとったJVMはエラーを出力し、Javaのプロセス自体を終了させます。ほとんどのOSではメモリアドレス 0はOSに保護された領域とされており、アドレス0へのアクセスは無効とするよう設計されています。C言語などの低レベル操作を実行できる言語では、アドレス0はNULLに対応する特別な値とされています。
 
-なお、Unsafeクラスとは低レベルレイヤーのメモリ操作を実行することができるクラスです。クラス名からわかるように危険な操作なため、本番環境で利用することは想定されていません。アプリケーションがクラッシュする恐れがあるためです。上述したコードではリフレクションを使ってUnsafeクラスを利用しました。これは、Unsafeクラスを直接使おうとすると例外が発生するためです。
+なお、Unsafeクラスとは低レベルレイヤーのメモリ操作を実行することができるクラスです。クラス名からわかるように危険な操作なため、本番環境で利用することは想定されていません。アプリケーションがクラッシュする恐れがあるためです。
 
+上述したコードではリフレクションを使ってUnsafeクラスを利用しました。これは、Unsafeクラスを直接使おうとすると例外が発生するためです。
 ```Java
 import sun.misc.Unsafe;
 
@@ -130,8 +131,7 @@ JNIEXPORT void JNICALL Java_CrashNative_causeSegmentationFault(JNIEnv *env, jobj
     *ptr = 1;        
 }
 ```
-まず、CrashNative.javaで`private native void causeSegmentationFault();`というネイティブメソッドを定義します。
-次にCrashNative.cでNULLポインタである`int *ptr = NULL; `を定義し、そこにアクセスするコードを書きます。
+まず、CrashNative.javaで`private native void causeSegmentationFault();`というネイティブメソッドを定義します。次にCrashNative.cでNULLポインタである`int *ptr = NULL; `を定義し、そこにアクセスするコードを書きます。
 
 ここまでできたらCLIで操作していきます。
 
