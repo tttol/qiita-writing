@@ -1,5 +1,5 @@
 ---
-title: Amazon SESのメール配信について深堀り/Deep dive into deliverability of Amazon SES!
+title: Amazon SESのメール配信に関する整理
 tags:
   - 'AWS'
 private: false
