@@ -7,7 +7,6 @@ Qiita記事執筆用のリポジトリ
  ```bash
  npx qiita new 記事のファイルのベース名
  ```
-※mainブランチでPUSHすると自動で公開されてしまうので、下書きのときはブランチを切る。
 
 ## 記事プレビュー
 ```bash
@@ -18,7 +17,9 @@ npx qiita preview
 ```bash
 npx qiita publish 記事のファイルのベース名
 ```
-or　mainブランチにマージ
 
 ## 画像UP
 localhostのプレビューページからアップロード用のリンクに飛ぶ。
+
+# CI
+publish allが走ると面倒なので一旦止めている（2025/11/17）
