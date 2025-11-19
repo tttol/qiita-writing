@@ -52,13 +52,15 @@ runc
 ↓
 コンテナ本体へアクセス
 ```
+それぞれのレイヤーを説明していきます。
 
 # Docker CLI
-`dockerp ps`, `docker run`などのCLIコマンドのことです。
-# socket
-`/var/run/docker.sock`はCLIコマンドとデーモン間の通信をつなぐソケットです。docker.sockはDocker Desktopを起動することで自動的にソケットもオープンになります。
+`docker ps`, `docker run`などのCLIコマンドのことです。
 
-余談ですが、`Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?`というエラーに遭遇したことのある人は多いのではないでしょうか？これはDocker CLIがソケットにアクセスできない場合に発生するエラーで、/var/run/docker.sockのソケットにアクセスできない旨のメッセージが表示されています。
+# socket
+`/var/run/docker.sock`はCLIコマンドとデーモン間の通信をつなぐソケットです。docker.sockはdockerdが起動するため、Docker Desktopを起動することでdockerdが起動し自動的にソケットもオープンになります。
+
+余談ですが、`Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?`というエラーに遭遇したことのある人は多いのではないでしょうか？これはDocker CLIがソケットにアクセスできない場合に発生するエラーで、`/var/run/docker.sock`のソケットにアクセスできない旨のメッセージが表示されています。
 
 ```
 $ docker ps
@@ -82,7 +84,7 @@ Docker Desktopではdockerdというデーモンを経由してcontainerdにア�
 - containerd
     - コンテナライフサイクルの管理
     - イメージのpull/push
-    - kubernetesサポート
+    - kubernetesサポート(CRI: Container Runtime Interface)
     - など・・・
 
 dockerdはDocker固有の機能に特化し、containerdはコンテナ自体の管理に特化しています。技術的にはDocker CLIからソケットを通してcontainerdに直接アクセスすることも可能ですが、dockerdが提供する豊富な機能を利用しないのは勿体無いので、dockerdを経由する方式が採用されているようです。
@@ -92,5 +94,32 @@ dockerdはDocker固有の機能に特化し、containerdはコンテナ自体の
 https://www.codingknownsense.com/clear-your-concept/docker-a-comprehensive-guide-to-containerization/docker-history/
 
 # Docker互換API
-# runc, cgroups
+Rancher DesktopなどのDocker Desktop以外のランタイムではではdockerdは存在せず、代わりにDocker互換のAPIのエンドポイントが存在します。（APIエンドポイントの例：Mobyやnerdctlなど）`docker ps`などのDocker CLIのコマンドをこのAPI層が受け取り、dockerdの代わりの役割を果たします。コンテナの起動や運用といったコアな部分の処理はcontainerdが行うので、dockerdがなくてもそれに代わる存在があれば問題ありません。
+
+# runc
+runcはコンテナをLinuxのプロセスとして実際に起動するコンテナランタイムです。コンテナの起動・停止・削除であったり、Linuxカーネルの機能を使ってコンテナを隔離し独立した環境として稼働させたりする役割があります。具体的にはcgroups, namespaceというLinuxカーネルの機能を利用しています。
+
+- cgroups
+    - 各プロセスが利用できるリソース（CPU、メモリなど）の制限・管理を行う
+    - 例：コンテナAはCPU2コア、メモリ512MBまで、といった制限を与える
+- namespace
+    - 各プロセスを分離させる
+    - 例：
+        - PID namespace: プロセスIDを分離しコンテナ内のプロセスは自分がPID 1だと思い込ませる
+        - Network namespace: ネットワークインターフェースやIPアドレスを分離
+
+ちなみにruncはGoで実装されています。
+
+# そもそもコンテナランタイムってなんだ？
+ここまで当然のようにコンテナランタイムという言葉を使ってきましたが、この言葉の定義を改めて確認します。コンテナランタイムとは「コンテナの起動・実行するためのソフトウェア」です。コンテナランタイムは高レベル・低レベルに分類されることが多く、ここまでで説明してきたdockerd, containerd, runcを整理すると以下のようになります。
+
+- 高レベルランタイム
+    - ユーザーからのリクエストを受けてコンテナイメージのpull/pushやコンテナの起動・停止を指示する
+    - 例：Docker Desktop, Rancher Desktopなどのユーザーインターフェース
+    - 例：dockerd, containerdなどのデーモン
+- 低レベルランタイム
+    - 高レベルランタイムから指示を受けて実際にコンテナの起動・停止などをLinuxプロセスのレベルで実行する
+    - 例：runc
+
 # まとめ
+ということで、Rancherで起動したコンテナがなぜDockerコマンドから確認できるんだ？という疑問から深掘りを始めた結果、containerdやruncといった低レベル層の話にまで発展してしまいました。正直、コンテナランタイムについてはもっと深掘りできる余地があるのですが、深掘りしすぎると記事が長くなってしまうのでこの辺りでやめておきます。（あと自分の知識が足りないので書きづらいというのもある）
