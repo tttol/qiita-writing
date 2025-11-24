@@ -9,4 +9,33 @@ organization_url_name: null
 slide: false
 ignorePublish: false
 ---
-# new article body
+# はじめに
+TODOアプリを自作するというのは多くのエンジニアが通る道だと思うのですが、多分に漏れず自分もその道を通りました。自分が作ったTODOアプリはデータ管理の部分が少し変わっていて、DBを使わずにローカル環境のファイルでデータを管理するという手法をとっています。あまり例のないパターンだと思うので、記事にして紹介します。
+
+# 作ったもの
+こんな感じのシンプルなTODOアプリを作りました。
+![app.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/26857fb7-6c2d-4195-817c-cdc097e49c1a.png)
+ソースコードはこちらです。
+
+https://github.com/tttol/rem
+
+
+# アーキテクチャ
+ここに図
+![スクリーンショット 2025-11-25 6.58.42.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/80628604-0e24-4af2-9bfc-1b9e3f6cfb3c.png)
+
+![スクリーンショット 2025-11-25 6.51.27.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/b86eabdd-f463-4ab4-993a-acbf7f243633.png)
+
+# 技術スタック
+## Backend
+Rustを採用しました。REMはファイルの読み書きを頻繁に実施するので、ここのIOの処理が高速に行えることを期待してRustを選びました。
+Rustでデスクトップアプリケーションを制作することができるTauriというフレームワークがあり、こちらを利用しています。`npm create tauri-app@latest`を実行することでTauri製のアプリケーションの雛形を簡単に作成することができ、FrontendはTypeScriptで、BackendはRustで書けるようになります。
+
+## Frontend
+TypeScript(React.js)を採用しました。前述の通りTauriで雛形を作るとデフォルトではTSを利用することになります。TSで困ることは特にないと感じたので、そのままTSで書き進めました。
+
+# 歯痒いところ
+本当は完成したアプリケーションをdmgファイルにして配布したり、Homebrewで配信したりなどしたかったのですが、叶いませんでした。というのも、Mac向けのデスクトップアプリケーションを配布するにはApple Developer　Programという開発者向けのプログラムに参加する必要があり、 **参加には99ドル/年の支払いが必要でした。**。（99ドル≒15万円）10万以上の支払いをする気にはなれなかったので、dmgファイルでの配布は諦めて、各自でソースコードをビルドして使ってもらう形をとりました。
+
+もうちょっと料金を安くしてくれたらなあ・・・と個人的には思います。Androidアプリにも似た制度があって、こちらは25ドル/年だそうです。
+まあ、今回は個人利用目的のアプリなのでいいんですけどね。
