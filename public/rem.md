@@ -20,7 +20,7 @@ TODOアプリを自作するというのは多くのエンジニアが通る道�
 https://github.com/tttol/rem
 
 
-# アーキテクチャ
+# データの持ち方
 REM上で作成したTODOタスクは全てJSONファイルとしてローカルマシンに保存されます。例えば「議事録を書く」というタスクを作成したら、以下のようなJSONが内部で生成されます。
 ```json
 {
@@ -32,7 +32,7 @@ REM上で作成したTODOタスクは全てJSONファイルとしてローカル
 ```
 
 ![スクリーンショット 2025-11-25 6.58.42.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/80628604-0e24-4af2-9bfc-1b9e3f6cfb3c.png)
-このJSONファイルはタスクのステータスによって`todo` or `doing` or `done`のディレクトリに保存されます。
+タスクの作成・更新が発生するたびにJSONファイルの読み書きが発生します。また、このJSONファイルはタスクのステータスによって`todo` or `doing` or `done`のディレクトリに振り分けられます。
 
 ```bash
 rem
@@ -45,8 +45,10 @@ rem
 ```
 
 
-
+図にすると以下のような感じです。
 ![スクリーンショット 2025-11-25 6.51.27.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/b86eabdd-f463-4ab4-993a-acbf7f243633.png)
+
+つまり、JSONファイルの内容と保存場所だけでタスクのデータを管理することが可能です。
 
 # 技術スタック
 ## Backend
