@@ -81,10 +81,22 @@ Cookieを送受信する際にドメインに応じて制御をかけます。Sa
 - Strict
     - 同一ドメインからのリクエストのみ送信を許可
 - Lax
-    - 
+    - 同一ドメインからのリクエスト かつ 以下の条件を満たすリクエストのみ許可
+        - リンククリックなどの最上位のレベルナビゲーションは送信し、<image>, <iframe>, <script>, fetch() APIなどのサブリソースからの送信は許可しない
 - None
     - 制限なし
     - Noneを利用する場合はSecureの指定が必須となる
+
+この「同一ドメイン」という表現も厳密には良くなくて、MDNの公式では以下のように記載されています。
+
+> このより正確な定義では、サイトはドメイン名の登録可能なドメイン部分によって決定されます。登録可能なドメインは、[公開接尾辞リスト](https://publicsuffix.org/list/)の項目と、その直前のドメイン名の部分から構成されます。つまり、たとえば、theguardian.co.uk、sussex.ac.uk、bookshop.org はすべて登録可能なドメインということになります。
+>
+> この定義に従えば、support.mozilla.org と developer.mozilla.org は同じサイトの一部です。 mozilla.org が登録可能なドメインだからです。
+
+参考元：https://developer.mozilla.org/ja/docs/Glossary/Site
+
+公開接尾辞リストの単位で同一のドメインであれば同一サイトと見なされるようで、support.mozilla.org と developer.mozilla.orgは同一サイトと判断されるようです。
+
 # Domain
 # Path
 # Expires
