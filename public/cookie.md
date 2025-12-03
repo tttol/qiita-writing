@@ -19,7 +19,7 @@ HTTP通信はステートレスな通信であるため、「状態」を保持�
 
 Cookieはkey-value形式で保存されるテキストデータです。
 ```
-sessionid=123456;theme=dark; ...
+sessionid=123456; theme=dark; ...
 ```
 
 Cookieには様々な情報が保持されるので、万一Cookieの情報を悪意のある第三者に盗聴・奪取されるとセキュリティインシデントに繋がります。開発者はCookieの情報が外部に漏洩しないようにアプリケーションを設計・実装することが肝要です。そのために、Cookie側が属性という形で様々な防御機能を提供しています。代表的なものを以下に挙げていきます。
@@ -27,19 +27,16 @@ Cookieには様々な情報が保持されるので、万一Cookieの情報を�
 - HttpOnly
 - Secure
 - SameSite
-- Domain
-- Path
 - Expires
 - Max-Age
-- Partitioned
 
-例えば`HttpOnly`, `SameSite`が付与されたCookieは以下のようになります。
+例えば`HttpOnly`, `Secure`, `SameSite`が付与されたCookieは以下のようになります。
 ```
 Set-Cookie: sessionid=abc123; HttpOnly; Secure; SameSite=Strict
 ```
 
 # HttpOnly
-HttpOnly属性が付与されたCookieはJavascriptからCookieにアクセスできなくなります。例えば`document.cookie`プロパティからの利用が不可能になります。XSSなどでCookieを奪われるリスクを防ぐことが可能です。
+HttpOnly属性が付与されたCookieはJavaScriptからCookieにアクセスできなくなります。例えば`document.cookie`プロパティからの利用が不可能になります。XSSなどでCookieを奪われるリスクを防ぐことが可能です。
 
 例えばJavaのSpringBootでHttpOnlyを付与する場合はapplication.ymlで以下のように設定するか、
 ```yml:application.yml
@@ -76,13 +73,13 @@ public ResponseEntity<?> login(@RequestBody LoginRequest request, HttpServletRes
 Secure属性が付与されたCookieはHTTPS通信でのみ送信が許可されます。つまりHTTP通信で送信することができなくなります。中間者攻撃の予防に繋がりますね。
 
 # SameSite
-Cookieを送受信する際にドメインに応じて制御をかけます。SameSiteは3つの値を持ちます。
+Cookieを送受信する際にドメインに応じて制御をかけます。SameSiteは3つの値を持ち、デフォルトは`Lax`です。
 
 - Strict
     - 同一ドメインからのリクエストのみ送信を許可
 - Lax
     - 同一ドメインからのリクエスト かつ 以下の条件を満たすリクエストのみ許可
-        - リンククリックなどの最上位のレベルナビゲーションは送信し、<image>, <iframe>, <script>, fetch() APIなどのサブリソースからの送信は許可しない
+        - リンククリックなどの最上位のレベルナビゲーションは送信し、`<image>`, `<iframe>`, `<script>`, `fetch()`などのサブリソースからの送信は許可しない
 - None
     - 制限なし
     - Noneを利用する場合はSecureの指定が必須となる
@@ -104,13 +101,23 @@ Cookieの有効期限を日時ベースで設定します。設定がない場�
 Expires=Wed, 09 Jun 2025 10:18:14 GMT
 ```
 
-Expiresに設定できる最大値は 2038年1月19日 03:14:07 UTC 程度とされています。これは32ビット符号付き整数で表現できるUNIXタイムスタンプの最大値（2,147,483,647秒）に対応しています。
+Expiresに設定できる最大値は 2038年1月19日 03:14:07 UTC とされています。これは32ビット符号付き整数で表現できるUNIXタイムスタンプの最大値（2,147,483,647秒）に対応しています。
+
+では2038年1月19日以降に期限を設定したい時はどうするかというと、次に紹介するMax-Ageを使いましょう。
 
 # Max-Age
+Cookieの有効期限を秒数で指定することができます。Max-AgeはExpiresよりも優先されます。
+```
+Max-Age=3600
+```
+
 # まとめ
+最後に表にまとめます。
 | 属性          | 目的       | 認証Cookieでの推奨 |
 |-------------|----------|--------------|
 | HttpOnly    | XSS対策    | 必須           |
 | Secure      | 盗聴対策     | 必須           |
 | SameSite    | CSRF対策   | Strict推奨     |
 | Expires, Max-Age     | 有効期限     | 適切に設定        |
+
+上記以外にも様々なCookieの属性がありますが、挙げだすとキリがないので代表的なものだけに絞ります。
