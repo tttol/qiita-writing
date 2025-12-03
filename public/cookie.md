@@ -95,19 +95,22 @@ Cookieを送受信する際にドメインに応じて制御をかけます。Sa
 
 参考元：https://developer.mozilla.org/ja/docs/Glossary/Site
 
-公開接尾辞リストの単位で同一のドメインであれば同一サイトと見なされるようで、support.mozilla.org と developer.mozilla.orgは同一サイトと判断されるようです。
+[公開接尾辞リスト](https://publicsuffix.org/list/)の単位で同一のドメインであれば同一サイトと見なされるようで、support.mozilla.org と developer.mozilla.orgは同一サイトと判断されるようです。
 
-# Domain
-# Path
 # Expires
+Cookieの有効期限を日時ベースで設定します。設定がない場合はブラウザ終了時にCookieが削除されます。
+
+```
+Expires=Wed, 09 Jun 2025 10:18:14 GMT
+```
+
+Expiresに設定できる最大値は 2038年1月19日 03:14:07 UTC 程度とされています。これは32ビット符号付き整数で表現できるUNIXタイムスタンプの最大値（2,147,483,647秒）に対応しています。
+
 # Max-Age
-# Partitioned
 # まとめ
-  | 属性          | 目的       | 認証Cookieでの推奨 |
-  |-------------|----------|--------------|
-  | HttpOnly    | XSS対策    | 必須           |
-  | Secure      | 盗聴対策     | 必須           |
-  | SameSite    | CSRF対策   | Strict推奨     |
-  | Path        | スコープ制限   | /推奨          |
-  | Max-Age     | 有効期限     | 適切に設定        |
-  | Partitioned | プライバシー保護 | サードパーティで検討   |
+| 属性          | 目的       | 認証Cookieでの推奨 |
+|-------------|----------|--------------|
+| HttpOnly    | XSS対策    | 必須           |
+| Secure      | 盗聴対策     | 必須           |
+| SameSite    | CSRF対策   | Strict推奨     |
+| Expires, Max-Age     | 有効期限     | 適切に設定        |
