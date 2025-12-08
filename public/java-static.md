@@ -1,7 +1,7 @@
 ---
-title: java-static
+title: Javaのstaticブロックの整理
 tags:
-  - ''
+  - 'Java'
 private: false
 updated_at: ''
 id: null
@@ -17,7 +17,7 @@ Javaにおいて`static{ }`で表されるブロックのことを指します�
   }
 ```
 
-staticブロックはJVMにクラスがロードされる前に実行されるという特徴があります。つまり、クラスのコンストラクタやインスタンスメソッドよりも前に実行されることになります。
+staticブロックはクラスがJVMにロードされた際の初期化フェーズで実行されるという特徴があります。つまり、クラスのコンストラクタやインスタンスメソッドよりも前に実行されることになります。
 
 
 また、staticブロックは一度しか実行されない仕様となっています。同じクラスを複数回宣言しても、staticブロックは最初の1回目にだけ実行され、2回目以降は実行されないようにJVMが制御しています。
@@ -61,7 +61,7 @@ public class StaticBlockSample {
 ```
 
 # staticブロックの使い所の例
-staticオブジェクトの初期化
+変数の初期化
 ```java
   static {
       settings = new HashMap<>();
