@@ -1,10 +1,10 @@
 ---
-title: 'vCPUってCPUと何が違う？'
+title: vCPUってCPUと何が違う？
 tags:
-  - 'コンテナ'
+  - container
 private: false
-updated_at: ''
-id: null
+updated_at: '2025-12-11T06:31:19+09:00'
+id: 464eb879a1488a1256e4
 organization_url_name: null
 slide: false
 ignorePublish: false

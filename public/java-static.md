@@ -1,10 +1,10 @@
 ---
 title: Javaのstaticブロックの整理
 tags:
-  - 'Java'
+  - Java
 private: false
-updated_at: ''
-id: null
+updated_at: '2025-12-09T05:31:36+09:00'
+id: f0d96dd96786cdfabba8
 organization_url_name: null
 slide: false
 ignorePublish: false
