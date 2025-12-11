@@ -1,10 +1,10 @@
 ---
 title: SOLID原則のO：OCPに対する自分の理解
 tags:
-  - '設計'
+  - 設計
 private: false
-updated_at: ''
-id: null
+updated_at: '2025-12-12T05:27:29+09:00'
+id: 0b8443ca7ea51f072128
 organization_url_name: null
 slide: false
 ignorePublish: false
