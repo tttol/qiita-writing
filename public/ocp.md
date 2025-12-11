@@ -83,9 +83,8 @@ public Direction handleInput(String input) {
 ```
 
 問題点：
-1. `Direction` enumに新しい値を追加する必要がある
-2. `onKey`メソッドのswitch文に新しいcaseを追加する必要がある
-3. つまり、既存のコードを修正している
+1. `onKey`メソッドのswitch文に新しいcaseを追加する必要がある
+2. つまり、既存のコードを修正している
 
 これは「修正に閉じていない」状態です。新しい機能を追加するたびに、既存のコードを変更する必要があり、以下のリスクがあります：
 - 既存機能にバグを混入させる可能性
@@ -166,7 +165,7 @@ public Direction handleInput(String input) {
 この実装では以下の点が改善されています：
 
 - 修正に閉じている: `onKey`メソッドは新しいキーが追加されても変更不要です。
-- 拡張に開いている: 新しいキーを追加する場合は、新しい`KeyEvent`実装クラスを作成し、`KeyEventFactory`の`Map`に追加するだけです。
+- 拡張に開いている: 新しいキーを追加する場合は、Enumを追加し、新しい`KeyEvent`実装クラスを作成し、`KeyEventFactory`の`Map`に追加するだけです。
 
 例えば、斜め方向のキー（右上など）を追加したい場合：
 
@@ -206,7 +205,6 @@ class KeyEventFactory {
 
 この「良い実装」は、デザインパターンの一つであるStrategyパターンを使用しています。Strategyパターンとは、アルゴリズムをオブジェクトとしてカプセル化し、実行時に切り替え可能にするデザインパターンです。
 
-## 一般的なStrategyパターンの構造
 
 ```mermaid
 classDiagram
@@ -235,7 +233,7 @@ Strategyパターンは以下の要素で構成されます：
 - **ConcreteStrategy（具体的な戦略）**: Strategyインターフェースを実装した具体的なアルゴリズム
 - **Context（コンテキスト）**: Strategyを使用する側のクラス
 
-## 今回のOCP例におけるStrategyパターン
+# 今回のOCP例におけるStrategyパターン
 
 ```mermaid
 classDiagram
@@ -279,7 +277,7 @@ classDiagram
 
 これがまさに「拡張に開いて、修正に閉じる」というOCPの原則を体現しています。
 
-## OCPの本質
+# OCPの本質
 
 OCPの本質は、「ソフトウェアの振る舞いを変更するときに、既存のコードを変更せずに新しいコードを追加することで実現する」という点にあります。
 
