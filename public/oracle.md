@@ -1,11 +1,11 @@
 ---
 title: MySQL慣れしたエンジニアがOracle DBを初めて触った時に戸惑ったこと
 tags:
-  - 'mysql'
-  - 'oracle'
+  - MySQL
+  - oracle
 private: false
-updated_at: ''
-id: null
+updated_at: '2025-12-13T05:35:18+09:00'
+id: f78700c88ec2a94d6d8a
 organization_url_name: null
 slide: false
 ignorePublish: false
