@@ -1,9 +1,9 @@
 ---
-title: AWSリソース消し忘れで実際に高額請求されないための対策
+title: AWSリソース消し忘れで高額請求されないための対策
 tags:
   - AWS
 private: false
-updated_at: '2025-12-15T06:06:28+09:00'
+updated_at: '2025-12-16T07:03:42+09:00'
 id: fa12c4a769e263a0c0be
 organization_url_name: null
 slide: false
@@ -88,6 +88,15 @@ AWS BudgetsにはCost Anomaly Detectionという機能があり、コストが�
 
 AWSコンソール上で `コスト異常検出` と表示されているリンクをクリックすることで設定が可能です。
 ![スクリーンショット 2025-12-15 5.59.02.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/e5691f38-771d-4e5c-abc2-2d63f9ce0fb8.png)
+
+# 余談：AWS Organizationsでアカウントを分ける
+何か技術検証やちょっとした開発を個人で行う場合、AWS Oraganizationsを使って用途ごとにAWSアカウントを新規作成して分別することをおすすめします。AWS Oraganizationsって企業などの大きな組織向けのサービスでは？と思うかもしれませんが、個人利用でも全然使えます。（おひとりさまOraganizationsと私は呼んでいます）
+
+用途ごとにAWSアカウントを分ける一番のメリットは、**作業が終わったらアカウントごと閉鎖できる点です。** アカウント閉鎖をしてしまえば、そのアカウント内で作成したAWSリソースは最終的に全て削除されるので、意図しない課金が発生するリスクをゼロにすることができます。
+
+過去におひとりさまOrganizationsについて書いた記事があるので、ご参考までに。
+
+https://qiita.com/tttol777/items/cfd5fa540493cd6be9f9
 
 # まとめ
 自分の過失で意図せぬ高額請求がきても、AWSサポートに問い合わせれば割となんとかしてくれることが多い印象です。（だからと言って甘えていいわけではないですが）
