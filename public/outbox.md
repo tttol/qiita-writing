@@ -36,7 +36,8 @@ CREATE TABLE outbox (
     id UUID PRIMARY KEY,
     event_type VARCHAR,
     payload JSONB,
-    status VARCHAR,
+    status VARCHAR DEFAULT 'pending',
+    retry_count INT DEFAULT 0,
     created_at TIMESTAMP,
     processed_at TIMESTAMP
 );
@@ -44,9 +45,11 @@ CREATE TABLE outbox (
 
 ```java
 @Transactional
-public void createOrder(Order order, Event event) {
-    orderRepository.save(order); // アプリで持つ
-    outboxRepository.save(event); // イベントを保存
+public void createOrder(Order order) {
+    orderRepository.save(order); // 注文データを保存
+    // Orderから OrderCreatedEvent を生成
+    OrderCreatedEvent event = new OrderCreatedEvent(order);
+    outboxRepository.save(event); // イベントをOutboxテーブルに保存
 }
 ```
 
@@ -56,9 +59,9 @@ public void createOrder(Order order, Event event) {
 例えばAWS Lambdaなどで、Outboxテーブルをポーリングしてイベント発行する処理を書きます。
 ```py
 def process_outbox(self):
-"""未処理イベントを取得して発行"""
+    """未処理イベントを取得して発行"""
     events = self.outbox_repository.find_unprocessed()
-    
+
     for event in events:
         try:
             # イベント発行
@@ -67,6 +70,15 @@ def process_outbox(self):
             self.outbox_repository.mark_as_processed(event.id)
             logger.info(f"Processed event: {event.id}")
         except Exception as e:
+            # リトライ回数をインクリメント
+            self.outbox_repository.increment_retry_count(event.id)
+
+            # 上限を超えた場合はステータスを失敗に更新
+            if event.retry_count >= MAX_RETRY:
+                self.outbox_repository.mark_as_failed(event.id)
+                # アラート通知など
+                self.alert_service.notify_failed_event(event.id)
+
             logger.error(f"Failed to process event {event.id}: {e}")
 ```
 このLambdaをEventbridgeなどで定期実行することでOutboxテーブルをポーリングすることができます。
@@ -102,7 +114,7 @@ sequenceDiagram
     rect rgb(220, 240, 200)
         Note over Worker,Sub: Phase 2: 非同期でのイベント発行
         loop ポーリング (例: 1秒ごと)
-            Worker->>Outbox: SELECT * FROM outbox<br/>WHERE processed_at IS NULL
+            Worker->>Outbox: SELECT * FROM outbox<br/>WHERE status = 'pending'<br/>ORDER BY created_at
             Outbox-->>Worker: 未処理イベント一覧
             
             alt イベントが存在する場合
@@ -142,6 +154,12 @@ sequenceDiagram
 - イベントは非同期処理で行う前提
     - イベントが正常終了した後に別の処理を行う、といった要件がある場合はOutboxパターンは適していない。
     - その場合は同期処理を使った別の実装が必要
+
+# 注意点
+- **べき等性の保証が必要**
+    - ワーカーがイベント発行後、Outboxテーブルの更新前に失敗すると、同じイベントが複数回発行される可能性があります
+    - サブスクライバー側で、同じイベントを複数回受け取っても問題ないように実装する必要があります
+    - 例：イベントIDを記録して、既に処理済みのイベントはスキップするなど
 
 # 参考
 

@@ -3,8 +3,8 @@ title: Engineers with English
 tags:
   - 英語
 private: false
-updated_at: ''
-id: null
+updated_at: '2025-12-19T04:57:17+09:00'
+id: dc6175788c436655385a
 organization_url_name: null
 slide: false
 ignorePublish: false
