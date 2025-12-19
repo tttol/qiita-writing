@@ -3,8 +3,8 @@ title: Outboxパターンとは
 tags:
   - 分散システム
 private: false
-updated_at: ''
-id: null
+updated_at: '2025-12-20T05:31:03+09:00'
+id: f77ad79eda40896de67f
 organization_url_name: null
 slide: false
 ignorePublish: false
