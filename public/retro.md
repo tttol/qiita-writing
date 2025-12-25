@@ -1,10 +1,10 @@
 ---
 title: ひとりアドベントカレンダーの振り返り
 tags:
-  - 'ひとりアドベントカレンダー'
+  - ひとりアドベントカレンダー
 private: false
-updated_at: ''
-id: null
+updated_at: '2025-12-25T10:19:21+09:00'
+id: 315239beae94867e0e02
 organization_url_name: null
 slide: false
 ignorePublish: false
