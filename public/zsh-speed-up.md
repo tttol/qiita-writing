@@ -145,11 +145,11 @@ https://github.com/zdharma-continuum/null
 ```diff
 - eval "$(/opt/homebrew/bin/brew shellenv)"
 + export HOMEBREW_PREFIX="/opt/homebrew"
-export HOMEBREW_CELLAR="/opt/homebrew/Cellar"
-export HOMEBREW_REPOSITORY="/opt/homebrew"
-export PATH="/opt/homebrew/bin:/opt/homebrew/sbin${PATH+:$PATH}"
-export MANPATH="/opt/homebrew/share/man${MANPATH+:$MANPATH}:"
-export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}"
++ export HOMEBREW_CELLAR="/opt/homebrew/Cellar"
++ export HOMEBREW_REPOSITORY="/opt/homebrew"
++ export PATH="/opt/homebrew/bin:/opt/homebrew/sbin${PATH+:$PATH}"
++ export MANPATH="/opt/homebrew/share/man${MANPATH+:$MANPATH}:"
++ export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}"
 ```
 
 `eval "$(/opt/homebrew/bin/brew shellenv)`は単に環境変数のexportをしているだけのようで、evalを毎回実行するよりも直にexportした方が早いのでこうしました。
