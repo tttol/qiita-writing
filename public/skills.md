@@ -1,11 +1,11 @@
 ---
-title: Skillsとは何で、AGENTS.mdやMCPとはどう違うのか
+title: CodexのSkillsとは何で、AGENTS.mdやMCPとはどう違うのか
 tags:
   - SKILLS
   - codex
   - Claude
 private: false
-updated_at: '2025-12-23T05:39:37+09:00'
+updated_at: '2025-12-29T07:52:03+09:00'
 id: be0f340b058e5153f58b
 organization_url_name: null
 slide: false

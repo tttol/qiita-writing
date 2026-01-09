@@ -15,7 +15,7 @@ ignorePublish: false
 https://zenn.dev/i9wa4/articles/2026-01-01-zsh-startup-optimization-zinit
 
 # 先に結果
-色々試した結果、起動時間が「99.9 ms -> 42.9 ms」になりました。
+色々試した結果、起動時間が **「99.9 ms -> 42.9 ms」** になりました。
 
 BEFORE
 ```bash
@@ -23,7 +23,7 @@ BEFORE
 Benchmark 1: zsh -i -c exit
   Time (mean ± σ):      99.9 ms ±   0.6 ms    [User: 58.1 ms, System: 41.9 ms]
   Range (min … max):    99.1 ms … 101.3 ms    10 runs
-  ```
+ ```
 
 AFTER
 ```bash
@@ -89,9 +89,74 @@ num  calls                time                       self            name
 https://github.com/zdharma-continuum/zinit
 
 ![zinit.png](https://qiita-image-store.s3.ap-northeast-1.amazonaws.com/0/159675/ef9bb265-2bf0-4383-bb98-2178236415e0.png)
-omzで管理していたプラグインは全てzinitにも存在していたので、サクッと移行しました。すると、起動時間が54 msまで短縮できました（すごい）
+omzで管理していたプラグインは全てzinitにも存在していたので、サクッと移行しました。すると、起動時間が54 msまで短縮できました。すごい。
 
 https://x.com/tttol777/status/2007933168662585619?s=20
 
 # 対応2：遅延読み込み
+ボトルネックの2つ目として、読み込みに時間を要しているプラグインを遅延読み込みするようにします。いわゆるlazy loadです。Zinitのコマンドを用いて遅延読み込みを実現します。
 
+```bash
+# zsh-users/zsh-autosuggestionsというプラグインを遅延読み込みさせるケース
+zinit ice wait lucid atload'_zsh_autosuggest_start'
+zinit light zsh-users/zsh-autosuggestions
+```
+
+- ice
+    - 次回のプラグイン読み込み時に有効となる設定を指定します
+    - 2行目の`zinit light zsh-users/zsh-autosuggestions`に対してwait, lucid, atload'_zsh_autosuggest_start'の3つを適用します。
+- wait
+    - プラグイン読み込みを遅延させます
+    - zshの起動後に`_zsh_autosuggestion_start`が読み込まれます
+- lucid
+    - プラグイン読み込み時に表示されるメッセージを非表示にします
+    - 遅延読み込みされたプラグインが発するメッセージを非表示にすることが目的です
+- atload
+    - プラグイン読み込み後に実行するコマンドを指定します
+- light
+    - レポート機能なしでプラグインを読み込みます
+    - 通常の`zinit load`よりも高速に実行されます
+
+これで、zsh起動後にプラグインの読み込みが開始されるようになります。ベンチマークで使ったhyperfineコマンドはzshの起動までを計測しているので、プラグインの遅延読み込み分の時間はカウントされません。
+
+なお、iceによる遅延読み込みはプラグインインストール以外の処理にも使えます。例えばこんな感じで複数行に渡るコマンド実行を遅延させる場合は以下のように書きます。
+```bash
+zinit ice wait lucid atload'
+autoload -Uz compinit && compinit -C
+if [ -e /usr/local/share/zsh-completions ]; then
+    fpath=(/usr/local/share/zsh-completions $fpath)
+fi
+zstyle ":completion:*" matcher-list "m:{a-z}={A-Z}"
+zstyle ":completion:*" ignore-parents parent pwd ..
+zstyle ":completion:*:default" menu select=1
+zstyle ":completion:*:cd:*" ignore-parents parent pwd
+'
+zinit light zdharma-continuum/null
+```
+
+zdharma-continuum/nullは空のプラグインです。コマンドを遅延実行させるためのhookを担っており、zdharma-continuum/nullが読み込まれた後にコマンドが実行されるようにしています。
+
+リポジトリを見てもわかる通り、本当に空っぽのプラグインです。
+
+https://github.com/zdharma-continuum/null
+
+# 対応3：Homebrewの環境変数
+これは小ネタに近いんですが、Homebrew関連の環境変数の扱いを修正しました。
+```diff
+- eval "$(/opt/homebrew/bin/brew shellenv)"
++ export HOMEBREW_PREFIX="/opt/homebrew"
+export HOMEBREW_CELLAR="/opt/homebrew/Cellar"
+export HOMEBREW_REPOSITORY="/opt/homebrew"
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin${PATH+:$PATH}"
+export MANPATH="/opt/homebrew/share/man${MANPATH+:$MANPATH}:"
+export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}"
+```
+
+`eval "$(/opt/homebrew/bin/brew shellenv)`は単に環境変数のexportをしているだけのようで、evalを毎回実行するよりも直にexportした方が早いのでこうしました。
+
+# さいごに
+Zinitに移行したことが一番効果が大きかったです。zshに限らず、プラグインマネージャーは定期的に見直した方が良いですね。
+
+最後に私のdotfilesを共有して終わりにしたいと思います。
+
+https://github.com/tttol/dotfiles
