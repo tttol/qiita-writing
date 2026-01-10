@@ -17,17 +17,114 @@ AWSコンソール上でリソースの作成・更新をしようと思った�
 こんな経験はないでしょうか。私は数えきれないほどあります。
 その度、ログイン中のアカウントにアタッチされたIAMロールを確認し、社内のAWSインフラ部隊に「権限ないんですけど」と問い合わせを送ります。
 
-AWS Organizationsで中規模〜大規模な構成を構築している場合、それぞれのAWSアカウントの権限は基本的に最小構成で設計していることが多いと思います。これはセキュリティの観点からはベストプラクティスであり、過剰な権限をユーザーに渡すリスクを抑えることができます。ただ一方で、組織内の各人のユースケースに沿った適切なロールを渡すこともまた難しいです。
+企業などの組織におけるそれぞれのAWSアカウントの権限は基本的に最小構成で設計していることが多いと思います。これはセキュリティの観点からはベストプラクティスであり、過剰な権限をユーザーに渡すリスクを抑えることができます。ただ一方で、組織内の各人のユースケースに沿った適切なロールを渡すこともまた難しいです。
 
 組織の人数が増えるほど「権限ないんですけど」の発生頻度も増加します。そんな時、自分のアカウントの所持ロールをサッと確認する方法が欲しくなります。
 
 # IAMロールを一覧で出力するCLIツールを作りました
 毎回IAMを調べるのも大変なので、アタッチされたロールを一発で表示するコマンドラインツールを作りました。canidoという名前のツールです。
 
+https://github.com/tttol/canido
+
 canidoを使うことで、ログイン中のAWSアカウントの所持ロールを確認することが可能です。
 例えばこんな感じ。
+```bash
+% canido
+
+--- Checking AWS credentials ---
+Target role: AWSReservedSSO_CanidoInlinePolicy_f1d7ab46757a3473
+
+==================================================
+  1. Managed Policies
+==================================================
+[Policy ARN]: arn:aws:iam::aws:policy/IAMFullAccess
+{
+  "Statement": [
+    {
+      "Action": [
+        "iam:*",
+        "organizations:DescribeAccount",
+        "organizations:DescribeOrganization",
+        "organizations:DescribeOrganizationalUnit",
+        "organizations:DescribePolicy",
+        "organizations:ListChildren",
+        "organizations:ListParents",
+        "organizations:ListPoliciesForTarget",
+        "organizations:ListRoots",
+        "organizations:ListPolicies",
+        "organizations:ListTargetsForPolicy"
+      ],
+      "Effect": "Allow",
+      "Resource": "*"
+    }
+  ],
+  "Version": "2012-10-17"
+}
+--------------------------------------------------
+
+==================================================
+  2. Inline Policies
+==================================================
+[Policy Name]: AwsSSOInlinePolicy
+{
+  "Statement": [
+    {
+      "Action": [
+        "s3:GetObject",
+        "s3:ListBucket"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Sid": "Statement1"
+    },
+    {
+      "Action": [
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:GetRandomPassword",
+        "secretsmanager:GetResourcePolicy",
+        "secretsmanager:GetSecretValue",
+        "secretsmanager:ListSecretVersionIds",
+        "secretsmanager:ListSecrets",
+        "secretsmanager:BatchGetSecretValue"
+      ],
+      "Effect": "Allow",
+      "Resource": [
+        "*"
+      ],
+      "Sid": "Statement2"
+    }
+  ],
+  "Version": "2012-10-17"
+}
+--------------------------------------------------
+```
 
 仕組みとしては単純で、以下のコマンドを順番に呼び出した結果を成形して出力しています。
+```bash
+% aws sts get-caller-identity
+% aws iam list-attached-role-policies --role-name MyRole
+% aws iam get-policy-version --policy-arn ... --version-id ...
+```
+
+
+インストール方法はREADMEに書いてある通りですが、macOSの場合はHomebrewから取得してください。ただし、先にHomebrew tapのマウントが必要です。
+```bash
+brew tap tttol/tap # tapをマウント
+brew install canido # canidoをインストール
+```
+
+Linuxの場合は以下の手順でバイナリからインストールしてください。Macでもこの手順は適用可能です。
+```bash
+# For x86_64 (Intel/AMD)
+curl -LO https://github.com/tttol/canido/releases/latest/download/canido-x86_64-unknown-linux-gnu.tar.gz
+tar xzf canido-x86_64-unknown-linux-gnu.tar.gz
+sudo mv canido /usr/local/bin/
+canido --version
+```
+
+Windowsの方はWSL2からLinuxと同じ手順を踏んでください。すみませんがコマンドプロンプトとPowerShell向けのバイナリは用意できていません。（私の手元にWindows環境がないので…）
 
 # 工夫した点
 ### 必要最低限の機能に絞った
@@ -40,7 +137,14 @@ canido作成のモチベーションは「今ログインしているアカウ�
 ### Homebrewで配布した
 自分はMacユーザーなのでcanidoはHomebrewで配布しました。簡単に言ってますがHomebrewでのツール配布は初めてだったので、調べながら手探りでやっていきました。
 
-今まであまり意識してなかったのですが、Homebrewにはtapという機能があります。これは個人利用や小規模なプロジェクト向けに用意された配布方法で、比較的簡単にツールの配布が可能です。
+Homebrewでパッケージを配布したい場合、homebrew/coreという公式のリポジトリに追加する必要があります。追加には一定の審査基準があり、オープンソースであることや一定の知名度（GitHub Starなど）が求められます。
 
-tapを使わない場合はHomebrew Coreというところに配布することとなり、Homebrewが運営するGitHubリポジトリにツールを配布したい旨のPRを送り、運営チームのレビューを受けApproveをもらわないとマージされません。レビューの際はツールの機能・内容・知名度(Starの数など？)がチェックされるようです。
+canidoのような知名度の低いツールをcoreに追加するのはハードルが高いので、代わりにtapという機能を使います。これは個人利用や小規模なプロジェクト向けに用意された審査なしで配布できる方法です。ただし、tapを使った場合はインストール時にtapをマウントするコマンドが1行必要になります。
+```bash
+brew tap tttol/tap # tapをマウント
+brew install canido # canidoをインストール
+```
+
+
 # さいごに
+canidoがAWSユーザーに広まってくれると嬉しいです。ぜひGitHubにStarをつけてください！
